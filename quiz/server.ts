@@ -18,7 +18,7 @@ interface UserRequest extends Request {
 const app: Express = express();
 const port: number = 8000;
 
-const dataFile = './data/users.json';
+const dataFile = './../data/users.json';
 
 let users: User[];
 
@@ -41,12 +41,26 @@ const addMsgToRequest = (req: UserRequest, res: Response, next: NextFunction) =>
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use('/read/usernames', addMsgToRequest);
+app.use('/read/username/:name', addMsgToRequest);
 
+// Existing endpoint to get all usernames
 app.get('/read/usernames', (req: UserRequest, res: Response) => {
   let usernames = req.users?.map((user) => {
     return { id: user.id, username: user.username };
   });
   res.send(usernames);
+});
+
+// New endpoint to search user by username and get email
+app.get('/read/username/:name', (req: UserRequest, res: Response) => {
+  const { name } = req.params;
+  
+  const user = req.users?.find((user) => user.username === name);
+  if (user) {
+    res.json({ email: user.email });
+  } else {
+    res.status(404).json({ error: 'User not found' });
+  }
 });
 
 app.use(express.json());
